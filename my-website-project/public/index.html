@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Streaming Links</title>
+    <link rel="stylesheet" href="styles/style.css">
+</head>
+<body>
+    <header>
+        <h1>Welcome to My Streaming Links</h1>
+    </header>
+    <main>
+        <h2>Streaming Sites</h2>
+        <ul>
+            <li><a href="https://www.netflix.com" target="_blank">Netflix</a></li>
+            <li><a href="https://www.hulu.com" target="_blank">Hulu</a></li>
+            <li><a href="https://www.amazon.com/primevideo" target="_blank">Amazon Prime Video</a></li>
+            <li><a href="https://www.disneyplus.com" target="_blank">Disney+</a></li>
+            <li><a href="https://www.youtube.com" target="_blank">YouTube</a></li>
+        </ul>
+        <h2>Programs</h2>
+        <ul id="program-list">
+            <li class="program-item">
+                <div>
+                    <button onclick="toggleProgram('qBittorrent')">Start qBittorrent</button>
+                </div>
+                <span id="qBittorrent-runtime" class="runtime"></span>
+                <span id="qBittorrent-status" class="status-box status-not-running"></span>
+            </li>
+            <li class="program-item">
+                <div>
+                    <button onclick="toggleProgram('Ombi')">Start Ombi</button>
+                </div>
+                <span id="Ombi-runtime" class="runtime"></span>
+                <span id="Ombi-status" class="status-box status-not-running"></span>
+            </li>
+            <li class="program-item">
+                <div>
+                    <button onclick="toggleProgram('Jellyfin')">Start Jellyfin</button>
+                </div>
+                <span id="Jellyfin-runtime" class="runtime"></span>
+                <span id="Jellyfin-status" class="status-box status-not-running"></span>
+            </li>
+            <li class="program-item">
+                <div>
+                    <button onclick="toggleProgram('Prowlarr')">Start Prowlarr</button>
+                </div>
+                <span id="Prowlarr-runtime" class="runtime"></span>
+                <span id="Prowlarr-status" class="status-box status-not-running"></span>
+            </li>
+            <li class="program-item">
+                <div>
+                    <button onclick="toggleProgram('Radarr')">Start Radarr</button>
+                </div>
+                <span id="Radarr-runtime" class="runtime"></span>
+                <span id="Radarr-status" class="status-box status-not-running"></span>
+            </li>
+            <li class="program-item">
+                <div>
+                    <button onclick="toggleProgram('Sonarr')">Start Sonarr</button>
+                </div>
+                <span id="Sonarr-runtime" class="runtime"></span>
+                <span id="Sonarr-status" class="status-box status-not-running"></span>
+            </li>
+        </ul>
+        <h2>Error Logs</h2>
+        <div id="error-logs" style="color: red; border: 1px solid red; padding: 10px; margin-top: 20px;">
+            No errors.
+        </div>
+    </main>
+    <footer>
+        <script src="scripts/app.js"></script>
+    </footer>
+</body>
+</html>
