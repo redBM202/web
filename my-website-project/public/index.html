@@ -63,7 +63,15 @@
                 <span id="Sonarr-runtime" class="runtime"></span>
                 <span id="Sonarr-status" class="status-box status-not-running"></span>
             </li>
+            <li class="program-item">
+                <div>
+                    <button onclick="toggleDockerContainer('flaresolverr')">Start Flaresolverr</button>
+                </div>
+                <span id="flaresolverr-runtime" class="runtime"></span>
+                <span id="flaresolverr-status" class="status-box status-not-running"></span>
+            </li>
         </ul>
+        <button onclick="stopAll()">Stop All</button>
         <h2>Folder Sizes</h2>
         <ul id="folder-size-list">
             <li class="folder-item">

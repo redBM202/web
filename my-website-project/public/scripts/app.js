@@ -7,11 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function formatRuntime(runtime) {
-        const days = runtime.Days;
-        const hours = runtime.Hours;
-        const minutes = runtime.Minutes;
-        const seconds = runtime.Seconds;
-        return `${days}d ${hours}h ${minutes}m ${seconds}s`;
+        return runtime;
     }
 
     function startProgram(programId) {
@@ -78,49 +74,150 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function startDockerContainer(containerName) {
+        fetch('/docker-container/start', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ containerName })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(message => {
+            const statusElement = document.getElementById(`${containerName}-status`);
+            const runtimeElement = document.getElementById(`${containerName}-runtime`);
+            const button = document.querySelector(`button[onclick="toggleDockerContainer('${containerName}')"]`);
+            if (!statusElement || !runtimeElement || !button) {
+                throw new Error(`Elements for ${containerName} not found`);
+            }
+            statusElement.classList.remove('status-not-running');
+            statusElement.classList.add('status-running');
+            button.innerText = `Stop ${containerName}`;
+        })
+        .catch(error => logError(`Error starting Docker container ${containerName}: ${error.message}`));
+    }
+
+    function stopDockerContainer(containerName) {
+        fetch('/docker-container/stop', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ containerName })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(message => {
+            const statusElement = document.getElementById(`${containerName}-status`);
+            const runtimeElement = document.getElementById(`${containerName}-runtime`);
+            const button = document.querySelector(`button[onclick="toggleDockerContainer('${containerName}')"]`);
+            if (!statusElement || !runtimeElement || !button) {
+                throw new Error(`Elements for ${containerName} not found`);
+            }
+            statusElement.classList.remove('status-running');
+            statusElement.classList.add('status-not-running');
+            button.innerText = `Start ${containerName}`;
+            runtimeElement.innerText = '';
+        })
+        .catch(error => logError(`Error stopping Docker container ${containerName}: ${error.message}`));
+    }
+
+    window.toggleDockerContainer = function(containerName) {
+        const statusElement = document.getElementById(`${containerName}-status`);
+        if (statusElement.classList.contains('status-running')) {
+            stopDockerContainer(containerName);
+        } else {
+            startDockerContainer(containerName);
+        }
+    }
+
     function checkProgramStatus(programId) {
         fetch(`/status/${programId}`)
             .then(response => response.json())
             .then(data => {
-                if (data.error) {
-                    throw new Error(data.error);
-                }
                 const statusElement = document.getElementById(`${programId}-status`);
-                const button = document.querySelector(`button[onclick="toggleProgram('${programId}')"]`);
                 const runtimeElement = document.getElementById(`${programId}-runtime`);
-                if (!statusElement || !button || !runtimeElement) {
+                const button = document.querySelector(`button[onclick="toggleProgram('${programId}')"]`);
+                if (!statusElement || !runtimeElement || !button) {
                     throw new Error(`Elements for ${programId} not found`);
                 }
                 if (data.isRunning) {
                     statusElement.classList.remove('status-not-running');
                     statusElement.classList.add('status-running');
                     button.innerText = `Stop ${programId}`;
-                    runtimeElement.innerText = `Runtime: ${formatRuntime(data.runtime)}`;
+                    if (data.runtime) {
+                        runtimeElement.innerText = `Runtime: ${data.runtime}`;
+                    }
                 } else {
                     statusElement.classList.remove('status-running');
                     statusElement.classList.add('status-not-running');
                     button.innerText = `Start ${programId}`;
-                    clearInterval(programRuntimes[programId]);
                     runtimeElement.innerText = '';
                 }
             })
             .catch(error => logError(`Error checking status of ${programId}: ${error.message}`));
     }
 
-    function checkFolderSize(folder) {
-        fetch(`/folder-size/${folder}`)
+    function checkDockerContainerStatus(containerName) {
+        fetch(`/docker-container/status/${containerName}`)
             .then(response => response.json())
             .then(data => {
-                if (data.error) {
-                    throw new Error(data.error);
+                const statusElement = document.getElementById(`${containerName}-status`);
+                const runtimeElement = document.getElementById(`${containerName}-runtime`);
+                const button = document.querySelector(`button[onclick="toggleDockerContainer('${containerName}')"]`);
+                if (!statusElement || !runtimeElement || !button) {
+                    throw new Error(`Elements for ${containerName} not found`);
                 }
-                const folderSizeElement = document.getElementById(`${folder}-size`);
-                if (!folderSizeElement) {
-                    throw new Error(`Element for ${folder} size not found`);
+                if (data.isRunning) {
+                    statusElement.classList.remove('status-not-running');
+                    statusElement.classList.add('status-running');
+                    button.innerText = `Stop ${containerName}`;
+                    if (data.uptime) {
+                        runtimeElement.innerText = `Uptime: ${data.uptime}`;
+                    }
+                } else {
+                    statusElement.classList.remove('status-running');
+                    statusElement.classList.add('status-not-running');
+                    button.innerText = `Start ${containerName}`;
+                    runtimeElement.innerText = '';
                 }
-                folderSizeElement.innerText = `${data.size}`;
             })
-            .catch(error => logError(`Error checking size of ${folder}: ${error.message}`));
+            .catch(error => logError(`Error checking status of Docker container ${containerName}: ${error.message}`));
+    }
+
+    window.stopAll = function() {
+        fetch('/stop-all', { method: 'POST' })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.text();
+            })
+            .then(message => {
+                document.querySelectorAll('.status-box').forEach(statusElement => {
+                    statusElement.classList.remove('status-running');
+                    statusElement.classList.add('status-not-running');
+                });
+                document.querySelectorAll('.runtime').forEach(runtimeElement => {
+                    runtimeElement.innerText = '';
+                });
+                document.querySelectorAll('button[onclick^="toggleProgram"]').forEach(button => {
+                    button.innerText = `Start ${button.getAttribute('onclick').match(/'([^']+)'/)[1]}`;
+                });
+                document.querySelectorAll('button[onclick^="toggleDockerContainer"]').forEach(button => {
+                    button.innerText = `Start ${button.getAttribute('onclick').match(/'([^']+)'/)[1]}`;
+                });
+            })
+            .catch(error => logError(`Error stopping all programs: ${error.message}`));
     }
 
     // Initial check of program status
@@ -130,6 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
     checkProgramStatus('Prowlarr');
     checkProgramStatus('Radarr');
     checkProgramStatus('Sonarr');
+    checkDockerContainerStatus('flaresolverr');
     setInterval(() => {
         checkProgramStatus('qBittorrent');
         checkProgramStatus('Ombi');
@@ -137,13 +235,6 @@ document.addEventListener('DOMContentLoaded', () => {
         checkProgramStatus('Prowlarr');
         checkProgramStatus('Radarr');
         checkProgramStatus('Sonarr');
-    }, 10000); // Check every 10 seconds
-
-    // Initial check of folder sizes
-    checkFolderSize('movies');
-    checkFolderSize('series');
-    setInterval(() => {
-        checkFolderSize('movies');
-        checkFolderSize('series');
+        checkDockerContainerStatus('flaresolverr');
     }, 10000); // Check every 10 seconds
 });
