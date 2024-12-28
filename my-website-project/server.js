@@ -1,6 +1,7 @@
 const express = require('express');
 const { exec } = require('child_process');
 const path = require('path');
+const fastFolderSize = require('fast-folder-size');
 const app = express();
 const port = 3000;
 
@@ -73,6 +74,25 @@ app.post('/stop/:program', (req, res) => {
         }
         delete runningPrograms[program];
         res.send(`Stopped ${program}`);
+    });
+});
+
+app.get('/folder-size/:folder', (req, res) => {
+    const folderMap = {
+        movies: 'D:\\Movies',
+        series: 'D:\\Series'
+    };
+    const folderPath = folderMap[req.params.folder.toLowerCase()];
+    if (!folderPath) {
+        return res.status(400).json({ error: 'Unknown folder' });
+    }
+    fastFolderSize(folderPath, (err, bytes) => {
+        if (err) {
+            console.error(`Error getting folder size: ${err.message}`);
+            return res.status(500).json({ error: 'Error getting folder size' });
+        }
+        const sizeInGB = (bytes / (1024 * 1024 * 1024)).toFixed(2); // Convert bytes to GB
+        res.json({ folder: req.params.folder, size: `${sizeInGB} GB` });
     });
 });
 

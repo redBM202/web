@@ -153,3 +153,18 @@ footer {
 .status-not-running {
     background-color: red;
 }
+
+.folder-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.folder-name {
+    font-weight: bold;
+}
+
+.folder-size {
+    font-size: 14px;
+    color: #555;
+}

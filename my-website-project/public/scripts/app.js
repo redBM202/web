@@ -107,6 +107,22 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(error => logError(`Error checking status of ${programId}: ${error.message}`));
     }
 
+    function checkFolderSize(folder) {
+        fetch(`/folder-size/${folder}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                const folderSizeElement = document.getElementById(`${folder}-size`);
+                if (!folderSizeElement) {
+                    throw new Error(`Element for ${folder} size not found`);
+                }
+                folderSizeElement.innerText = `${data.size}`;
+            })
+            .catch(error => logError(`Error checking size of ${folder}: ${error.message}`));
+    }
+
     // Initial check of program status
     checkProgramStatus('qBittorrent');
     checkProgramStatus('Ombi');
@@ -121,5 +137,13 @@ document.addEventListener('DOMContentLoaded', () => {
         checkProgramStatus('Prowlarr');
         checkProgramStatus('Radarr');
         checkProgramStatus('Sonarr');
+    }, 10000); // Check every 10 seconds
+
+    // Initial check of folder sizes
+    checkFolderSize('movies');
+    checkFolderSize('series');
+    setInterval(() => {
+        checkFolderSize('movies');
+        checkFolderSize('series');
     }, 10000); // Check every 10 seconds
 });
